@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from typing import List
 from pydantic import BaseModel
 import numpy as np
-import requests
 import pickle
 
 app = FastAPI()
