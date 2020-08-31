@@ -17,6 +17,9 @@ class Flower(BaseModel):
     petal_length: float
     petal_width: float
 
+@app.get('/iris/test')
+async def testing():
+    return "Hello World"
 
 @app.post('/iris/upload_one_flower/')
 async def read_flower(flower : Flower):
