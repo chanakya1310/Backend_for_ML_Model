@@ -6,7 +6,7 @@ httptools==0.1.1
 joblib==0.16.0
 numpy==1.19.1
 pydantic==1.6.1
-scikit-learn==0.23.0
+scikit-learn==0.22.2.post1
 scipy==1.5.2
 sklearn==0.0
 starlette==0.13.6
