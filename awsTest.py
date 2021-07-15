@@ -35,7 +35,7 @@ async def createBucket():
         bucket = s3.create_bucket(Bucket = BUCKET_NAME, CreateBucketConfiguration={
         'LocationConstraint': 'ap-south-1'})
         s3.Object(BUCKET_NAME, 'iris.pkl').put(Body=open('iris.pkl', 'rb'))
-        # s3.Object(BUCKET_NAME, 'iris_preprocessing.pkl').put(Body=open('iris_preprocessing.pkl', 'rb'))
+        s3.Object(BUCKET_NAME, 'iris_preprocessing.pkl').put(Body=open('iris_preprocessing.pkl', 'rb'))
         return {"Bucket Successfully Created"}
     except Exception as e:
         return {'S3 error: ', e}
@@ -44,17 +44,15 @@ async def createBucket():
 async def read_flower(flower : Flower):
     result = {}
     flower_to_predict = np.array([flower.sepal_length, flower.sepal_width, flower.petal_length, flower.petal_width]).reshape(1, -1)
-    # flower_to_predict = ss.transform(flower_to_predict)
-    print(flower_to_predict)
     if len(flower_to_predict[0]) == 4:
         prediction = predict(flower_to_predict)
         prediction = float(prediction[0])
         result.update({'prediction' : int(prediction)})
-        if prediction == 1:
+        if prediction == 0:
             result.update({'Flower name' : 'setosa'})
-        elif prediction == 2:
+        elif prediction == 1:
             result.update({'Flower name' : 'versicolor'})
-        elif prediction == 3:
+        elif prediction == 2:
             result.update({'Flower name' : 'virginica'})
     return result
 
@@ -62,12 +60,22 @@ def load_model():
     s3 = boto3.resource('s3')
 
     with BytesIO() as data:
+        s3.Bucket(BUCKET_NAME).download_fileobj("iris_preprocessing.pkl", data)
+        data.seek(0)    # move back to the beginning after writing
+        ss = pickle.load(data)
+
+    with BytesIO() as data:
         s3.Bucket(BUCKET_NAME).download_fileobj("iris.pkl", data)
         data.seek(0)    # move back to the beginning after writing
-        old_list = pickle.load(data)
+        model = pickle.load(data)
 
-        return old_list
+    return [ss, model]
 
 def predict(data):
-  # Process your data, create a dataframe/vector and make your prediction
-  return load_model().predict(data)
+  ss, model = load_model()
+#   print("Before transform", data)
+  data = ss.transform(data)
+#   print("After transform", data)
+  prediction = model.predict(data)
+  print(prediction)
+  return prediction
